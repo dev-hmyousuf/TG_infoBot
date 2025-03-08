@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Profile</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Telegram Web Apps JavaScript -->
+    <script async src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Custom Styles -->
+    <style>
+        body {
+            background: linear-gradient(to bottom right, #4e54c8, #8f94fb);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        .profile-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            margin-bottom: 15px;
+        }
+        .name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .username, .user-id {
+            color: #ddd;
+        }
+        .btn {
+            background-color: #6c63ff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #5753c9;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-card">
+        <img id="profile-pic" class="profile-pic" alt="Profile Picture">
+        <div id="name" class="name"></div>
+        <div id="username" class="username"></div>
+        <div id="user-id" class="user-id"></div>
+        <button class="btn" onclick="toggleFullscreen()">Toggle Fullscreen</button>
+    </div>
+
+    <script>
+        // Function to toggle fullscreen mode
+        function toggleFullscreen() {
+            const tg = window.Telegram.WebApp;
+            if (tg.isExpanded) {
+                tg.close();
+            } else {
+                tg.expand();
+            }
+        }
+
+        // Initialize Telegram WebApp
+        window.onload = function () {
+            const tg = window.Telegram.WebApp;
+            tg.expand(); // Expand the WebApp to full height
+
+            // Fetch user data from Telegram WebApp
+            const user = tg.initDataUnsafe.user;
+            if (user) {
+                document.getElementById('name').textContent = `${user.first_name} ${user.last_name || ''}`;
+                document.getElementById('username').textContent = user.username ? `@${user.username}` : 'No username';
+                document.getElementById('user-id').textContent = `ID: ${user.id}`;
+                document.getElementById('profile-pic').src = user.photo_url || 'https://via.placeholder.com/100';
+            } else {
+                alert("User data not available. Please open this inside Telegram.");
+            }
+        };
+    </script>
+</body>
+</html>

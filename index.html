@@ -3,97 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Profile</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script async src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Telegram User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .profile-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            text-align: center;
+        }
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+        .info {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .info b {
+            color: #333;
+        }
+        .info p {
+            margin: 0;
+            color: #666;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+<body>
 
-    <!-- Profile Container -->
-    <div class="w-full max-w-xl bg-gray-800 text-white rounded-lg overflow-hidden shadow-lg">
-        <!-- Profile Header -->
-        <div class="bg-gray-700 p-6 flex items-center space-x-4 border-b border-gray-600">
-            <img id="profile-pic" class="w-24 h-24 rounded-full border-2 border-blue-500" alt="Profile Picture">
-            <div>
-                <h1 id="name" class="text-2xl font-semibold">Loading...</h1>
-                <p id="username" class="text-gray-400 text-sm"></p>
-                <p id="user-id" class="text-gray-500 text-xs"></p>
-                <p id="account-created" class="text-gray-500 text-xs"></p>
-            </div>
-        </div>
+<div class="profile-container">
+    <h2>Telegram Profile Info</h2>
+    <input type="text" id="usernameInput" placeholder="Enter @username" style="padding: 10px; width: 80%; margin-bottom: 20px;">
+    <button onclick="fetchUserInfo()">Fetch Profile</button>
 
-        <!-- User Info Section -->
-        <div class="p-6 space-y-4">
-            <h2 class="text-xl font-semibold">Additional Info</h2>
-            <p id="account-age" class="text-sm text-gray-400"></p>
-            <p id="premium-status" class="text-sm text-gray-400"></p>
-        </div>
+    <div id="profileInfo" style="display: none;">
+        <img id="profilePic" class="profile-img" src="" alt="Profile Picture">
+        <div id="userInfo"></div>
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+</div>
 
-        // Ensure full-screen experience
-        tg.expand();
-
-        // Function to fetch basic user data
-        function getTelegramUserInfo() {
-            const user = tg.initDataUnsafe.user;
-            if (user) {
-                return {
-                    first_name: user.first_name,
-                    last_name: user.last_name || "",
-                    username: user.username || "No username",
-                    id: user.id,
-                    photo_url: user.photo_url || "https://via.placeholder.com/100"
-                };
-            } else {
-                alert("Unable to fetch user data. Ensure this is opened inside the Telegram app.");
-                return null;
-            }
+<script>
+    function fetchUserInfo() {
+        const username = document.getElementById('usernameInput').value.trim();
+        
+        if (!username) {
+            alert("Please enter a valid username.");
+            return;
         }
 
-        // Fetch additional info (account age, premium status) from Google Apps Script
-        async function fetchAdditionalInfo(userInfo) {
-            const response = await fetch("https://script.google.com/macros/s/AKfycbyjXrDuiJGoNULTLwQDtncg1KE0L4OSZ4SSFNmWfi0gTVLQ3yh3uGlQROsP1VqCqSGRtQ/exec", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ user_id: userInfo.id })
+        const scriptUrl = `https://script.google.com/macros/s/AKfycbw2eaFc6DTqu1htU_wOMuJBsIz2cQ8E5MXtn83jGdR5IxuqUqw6Yk4LdN0bR0TWJT_nMQ/exec?username=${username}`;
+
+        fetch(scriptUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('errorMessage').innerText = `Error: ${data.error}`;
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('profileInfo').style.display = 'none';
+                } else {
+                    document.getElementById('profilePic').src = data.photo_url;
+                    document.getElementById('userInfo').innerHTML = `
+                        <div class="info"><b>Name:</b> ${data.first_name} ${data.last_name}</div>
+                        <div class="info"><b>Username:</b> <a href="https://t.me/${data.username}" target="_blank">@${data.username}</a></div>
+                        <div class="info"><b>User ID:</b> ${data.id}</div>
+                        <div class="info"><b>Account Created:</b> ${data.account_creation_date}</div>
+                        <div class="info"><b>Account Age:</b> ${data.account_age} years</div>
+                        <div class="info"><b>Premium:</b> ${data.is_premium ? "Yes" : "No"}</div>
+                    `;
+                    document.getElementById('profileInfo').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                document.getElementById('errorMessage').innerText = `Error fetching data: ${error.message}`;
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('profileInfo').style.display = 'none';
             });
-
-            const data = await response.json();
-            return data;
-        }
-
-        // When the page loads, show the user info
-        window.onload = async function() {
-            const userInfo = getTelegramUserInfo();
-
-            if (userInfo) {
-                // Show basic user info
-                document.getElementById("name").textContent = `${userInfo.first_name} ${userInfo.last_name}`;
-                document.getElementById("username").textContent = `@${userInfo.username}`;
-                document.getElementById("user-id").textContent = `ID: ${userInfo.id}`;
-                document.getElementById("profile-pic").src = userInfo.photo_url;
-
-                // Fetch additional info (account age, premium status)
-                const additionalInfo = await fetchAdditionalInfo(userInfo);
-
-                // Show additional user info
-                if (additionalInfo.account_creation_date) {
-                    document.getElementById("account-created").textContent = `Account Created: ${additionalInfo.account_creation_date}`;
-                }
-                if (additionalInfo.account_age) {
-                    document.getElementById("account-age").textContent = `Account Age: ${additionalInfo.account_age}`;
-                }
-                if (additionalInfo.is_premium !== undefined) {
-                    document.getElementById("premium-status").textContent = additionalInfo.is_premium ? "Premium User" : "Free User";
-                }
-            }
-        };
-    </script>
+    }
+</script>
 
 </body>
 </html>

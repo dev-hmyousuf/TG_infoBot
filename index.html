@@ -28,14 +28,6 @@
             <p id="account-age" class="text-sm text-gray-400"></p>
             <p id="premium-status" class="text-sm text-gray-400"></p>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="p-6 space-y-4">
-            <button class="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold"
-                onclick="toggleFullscreen()">Toggle Fullscreen</button>
-            <button class="w-full py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold"
-                onclick="window.Telegram.WebApp.close()">Close App</button>
-        </div>
     </div>
 
     <script>
@@ -90,16 +82,17 @@
                 const additionalInfo = await fetchAdditionalInfo(userInfo);
 
                 // Show additional user info
-                document.getElementById("account-created").textContent = `Account Created: ${additionalInfo.account_creation_date}`;
-                document.getElementById("account-age").textContent = `Account Age: ${additionalInfo.account_age}`;
-                document.getElementById("premium-status").textContent = additionalInfo.is_premium ? "Premium User" : "Free User";
+                if (additionalInfo.account_creation_date) {
+                    document.getElementById("account-created").textContent = `Account Created: ${additionalInfo.account_creation_date}`;
+                }
+                if (additionalInfo.account_age) {
+                    document.getElementById("account-age").textContent = `Account Age: ${additionalInfo.account_age}`;
+                }
+                if (additionalInfo.is_premium !== undefined) {
+                    document.getElementById("premium-status").textContent = additionalInfo.is_premium ? "Premium User" : "Free User";
+                }
             }
         };
-
-        // Function to toggle fullscreen mode
-        function toggleFullscreen() {
-            tg.isExpanded ? tg.close() : tg.expand();
-        }
     </script>
 
 </body>
